@@ -1,5 +1,2 @@
-transformers
-torch
-sentencepiece
-protobuf
-accelerate
+gradio==6.0.2
+transformers==4.42.4
