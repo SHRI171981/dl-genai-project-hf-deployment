@@ -57,9 +57,7 @@ theme = gr.themes.Soft(
 with gr.Blocks() as demo:
     gr.Markdown(
         """
-        # 🤖 Ensemble Emotion Classifier
-        ### merging predictions from 3 models (DeBERTa-Base, DeBERTa-Large, RoBERTa-Base)
-        This app runs your text through **all three models** and averages their confidence scores for higher accuracy.
+        # DL GenAI Emotion Classifier
         """
     )
     
