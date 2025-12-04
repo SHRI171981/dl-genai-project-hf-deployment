@@ -16,4 +16,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://shri171981:$HF_TOKEN@huggingface.co/spaces/shri171981/genai_sentiment_classifier main
+        run: git push --force https://shri171981:$HF_TOKEN@huggingface.co/spaces/shri171981/genai_sentiment_classifier main
