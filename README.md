@@ -8,7 +8,7 @@ app_file: app.py
 pinned: false
 ---
 
-# GenAI Sentiment Classifier
+# DL-GenAI Sentiment Classifier
 
 This repository contains a Python-based web application that detects emotions in text. Specifically, it classifies input text into one of five categories: Anger, Fear, Joy, Sadness, or Surprise.
 
@@ -45,3 +45,5 @@ If you want to run this locally on your machine, follow these steps:
 1. **Clone the repository**
    ```bash
    git clone https://github.com/SHRI171981/dl-genai-project-hf-deployment
+   pip install -r requirements.txt
+2. **Create .env and add key HF_TOKEN**
