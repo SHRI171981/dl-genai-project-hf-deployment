@@ -1,44 +1,65 @@
 import gradio as gr
 from transformers import pipeline
 
-# 1. SETUP MODEL
-MODEL_ID = "shri171981/genai_project_deployment"
+# 1. SETUP MODELS
+# We put them in a list to loop through them easily
+MODEL_IDS = [
+    "shri171981/genai_model_dberta_base",
+    "shri171981/genai_model_dberta_large",
+    "shri171981/genai_model_roberta_base"
+]
 
 # 2. DEFINE LABELS
 LABELS = ["Anger", "Fear", "Joy", "Sadness", "Surprise"]
 
-# 3. LOAD PIPELINE
-pipe = pipeline("text-classification", model=MODEL_ID, top_k=None)
+# 3. LOAD PIPELINES
+pipelines = []
+for model_id in MODEL_IDS:
+    try:
+        print(f"Loading {model_id}...")
+        # top_k=None ensures we get probabilities for ALL classes, not just the top 1
+        p = pipeline("text-classification", model=model_id, top_k=None)
+        pipelines.append(p)
+    except Exception as e:
+        print(f"Failed to load {model_id}: {e}")
 
 def predict(text):
-    # Run inference
-    results = pipe(text)[0]
+    # Initialize a dictionary to hold the sum of scores: {"Anger": 0.0, "Fear": 0.0, ...}
+    final_scores = {label: 0.0 for label in LABELS}
     
-    # Create a dictionary of { "Joy": 0.95, "Anger": 0.02 } for Gradio
-    output_scores = {}
-    for result in results:
-        # Extract the ID (e.g., "LABEL_0" -> 0)
-        label_id = int(result['label'].split('_')[-1])
+    # 1. Loop through each model pipeline
+    for pipe in pipelines:
+        # Get raw result: [[{'label': 'LABEL_0', 'score': 0.9}, ...]]
+        results = pipe(text)[0]
         
-        # Map ID to the text name (e.g., 0 -> "Anger")
-        label_name = LABELS[label_id]
-        
-        # Add to dict
-        output_scores[label_name] = result['score']
-    
-    return output_scores
+        # 2. Add this model's scores to the total
+        for result in results:
+            label_id = int(result['label'].split('_')[-1]) # e.g., "LABEL_0" -> 0
+            label_name = LABELS[label_id]              # e.g., 0 -> "Anger"
+            score = result['score']
+            
+            # Add to the running total
+            final_scores[label_name] += score
 
-# 4. UI
+    # 3. Average the scores
+    # Divide each total by the number of models (3)
+    num_models = len(pipelines)
+    averaged_scores = {k: v / num_models for k, v in final_scores.items()}
+    
+    return averaged_scores
+
+# 4. DEFINE UI
 theme = gr.themes.Soft(
-    primary_hue="orange",
+    primary_hue="teal",
     secondary_hue="slate",
 )
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=theme) as demo:
     gr.Markdown(
         """
-        # Emotion Classifier
-        ### Analyze the sentiment of your text across 5 different emotions.
+        # 🤖 Ensemble Emotion Classifier
+        ### merging predictions from 3 models (DeBERTa-Base, DeBERTa-Large, RoBERTa-Base)
+        This app runs your text through **all three models** and averages their confidence scores for higher accuracy.
         """
     )
     
@@ -49,24 +70,24 @@ with gr.Blocks() as demo:
                 placeholder="Type something emotional here...",
                 lines=3
             )
-            submit_btn = gr.Button("Analyze Emotion", variant="primary")
+            submit_btn = gr.Button("Analyze with Ensemble", variant="primary")
             
             gr.Examples(
                 examples=[
-                    ["I can't believe you would betray me like this!"], # Anger
-                    ["I heard a strange noise outside and I'm scared to look."], # Fear
-                    ["I finally got the promotion! This is the best day ever!"], # Joy
-                    ["I feel so lonely and empty inside."], # Sadness
-                    ["Wow! I never expected a surprise party!"] # Surprise
+                    ["I can't believe you would betray me like this!"], 
+                    ["I heard a strange noise outside and I'm scared to look."], 
+                    ["I finally got the promotion! This is the best day ever!"], 
+                    ["I feel so lonely and empty inside."], 
+                    ["Wow! I never expected a surprise party!"] 
                 ],
                 inputs=input_text
             )
             
         with gr.Column():
-            # This component creates the bar chart automatically
-            output_chart = gr.Label(label="Emotion Confidence Scores", num_top_classes=5)
+            # The chart will automatically show the averaged probabilities
+            output_chart = gr.Label(label="Ensemble Confidence Scores", num_top_classes=5)
 
-    # Link the button to the function
+    # Link the button
     submit_btn.click(fn=predict, inputs=input_text, outputs=output_chart)
 
 # 5. LAUNCH
