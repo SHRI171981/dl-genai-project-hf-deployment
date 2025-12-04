@@ -83,7 +83,7 @@ with gr.Blocks() as demo:
             
         with gr.Column():
             # The chart will automatically show the averaged probabilities
-            output_chart = gr.Label(label="Ensemble Confidence Scores", num_top_classes=5)
+            output_chart = gr.Label(label="Sentiment Analysis", num_top_classes=5)
 
     # Link the button
     submit_btn.click(fn=predict, inputs=input_text, outputs=output_chart)
