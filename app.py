@@ -54,7 +54,7 @@ theme = gr.themes.Soft(
     secondary_hue="slate",
 )
 
-with gr.Blocks(theme=theme) as demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
         # 🤖 Ensemble Emotion Classifier
